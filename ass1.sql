@@ -30,7 +30,7 @@ as
 create or replace view Q2(beer, style, abv, reason)
 as
   SELECT name 
-  FROM Beers_Styles_abs_details
+  FROM Beers_Styles_abv_details
   WHERE abv > max_abv OR abv < min_abv
 ;
 
