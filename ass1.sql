@@ -9,7 +9,7 @@ as
   SELECT 
     name,
     volume || 'ml ' || sold_in, 
-    (volume * ABV / 100)::numeric(5, 2) || 'ml'
+    (volume * ABV / 100)::numeric(5, 1) || 'ml'
   FROM Beers
   WHERE rating > 9
 ;
