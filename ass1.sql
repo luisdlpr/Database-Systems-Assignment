@@ -6,7 +6,12 @@
 
 create or replace view Q1(beer, "sold in", alcohol)
 as
-select null, null, null  -- replace this with your SQL code
+  SELECT 
+    name,
+    volume || 'ml ' || sold_in, 
+    ROUND((volume * ABV / 100)::numeric, 2) || 'ml'
+  FROM Beers
+  WHERE rating > 9
 ;
 
 -- Q2: beers that don't fit the ABV style guidelines
