@@ -218,6 +218,8 @@ inner join (
 on f.ingredient = i.id
 ;
 
+-- select max(_count), itype from ing_freq_ext group by itype;
+
 create or replace view Q6(beer)
 as
 select null  -- replace this with your SQL code
