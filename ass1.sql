@@ -110,10 +110,54 @@ group by c.name-- replace this with your SQL code
 -- Q4: Countries where the worst beers are brewed
 
 -- put any Q4 helper views/functions here
+-- create view ing_from_cze(name, id) as select i.name, i.id from ingredients i inner join (select c.id, c.code from countries c where c.code = 'CZE') as c on c.id = i.origin;
+-- select by.beer, br.name, br.located_in from brewed_by by inner join (select id, name, located_in from breweries) br on by.brewery = br.id;
+-- select b.beer, b.brewery_name, l.within from beer_by_location b inner join (select id, within from locations) as l on l.id = b.location;
+-- select b.name, c.brewery_name, c.country from beer_by_country_id c inner join (select id, name from beers where rating < 3) b on b.id = c.beer;
+-- select q.name, q.brewery, c.name from q4_cid q inner join (select id, name from countries) c on c.id = q.country;
+
+create or replace view b_by_loc(b_id, brewery, l_id)
+as 
+select by.beer, br.name, br.located_in 
+from brewed_by by
+inner join (
+  select id, name, located_in
+  from breweries
+) as br
+on by.brewery = b.id
+;
+
+create or replace view b_by_c(b_id, brewery, c_id)
+as
+select b.b_id, b.brewery, l.within 
+from b_by_loc b 
+inner join (
+  select id, within
+  from locations
+) as l
+on l.id = b.l_id;
+
+create or replace view b_by_c_filtered (beer, brewery, c_id)
+as
+select b.name, c.brewery, c.c_id
+from b_by_c c
+inner join (
+  select id, name
+  from beers
+  where rating < 3
+) as b
+on b.id = c.b_id
+;
 
 create or replace view Q4(beer, brewery, country)
 as
-select null, null, null  -- replace this with your SQL code
+select q.beer, q.brewery, c.name
+from q4_cid q
+inner join (
+  select id, name
+  from countries
+) c
+on c.id = q.country
 ;
 
 -- Q5: Beers that use ingredients from the Czech Republic
