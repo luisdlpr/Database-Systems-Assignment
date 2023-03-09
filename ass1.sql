@@ -50,12 +50,61 @@ as
 ;
 
 -- Q3: Number of beers brewed in each country
+-- select c.name, count(*) from countries c left join (select b.name, l.within from breweries b inner join (select * from locations) as l on b.located_in = l.id) as i on i.within = c.id group by id;
+-- select count(bby.brewery), brew.id from brewed_by as bby right join (select name, id from breweries) as brew on brew.id = bby.brewery group by brew.id;
 
--- put any Q3 helper views/functions here
+-- ass1=# select l.located_in, sum(b.count) from breweries l left join numBeersByBrewery as b on b.brewery = l.located_in group by l.located_in;
+-- ass1=# select max(sum) from (select l.located_in, sum(b.count) from breweries l left join numBeersByBrewery as b on b.brewery = l.located_in group by l.located_in) as b;
+--  max
+-- -----
+--   56
+-- (1 row)
+
+-- ass1=# se(select l.located_in, sum(b.count) from breweries l left join numBeersByBrewery as b on b.brewery = l.located_in group by l.located_in);
+-- ass1=# create view numBeersByBrewery(brewery, count) as select brewery, count(beer) from brewed_by group by brewery;
+
+-- select br.located_in, sum(be.count) from breweries as br left join (select * from numBeersByBrewery) as be on be.brewery = br.id group by br.located_in;
+-- create view breweryBeerCount(location, count) as select br.located_in, sum(be.count) from breweries as br left join (select * from numBeersByBrewery) as be on be.brewery = br.id group by br.located_in;
+-- create view numBeersCountryNN(country, count) as select l.within, sum(count) from locations as l right join (select * from breweryBeerCount) as b on b.location = l.id group by l.within;
+-- select c.name, coalesce(sum(b.count), 0) from countries c left join (select * from numBeersCountryNN) as b on b.country = c.id group by c.name;
+-- CREATE VIEW
+-- -- put any Q3 helper views/functions here
+create or replace view beer_count_by_brewery(brewery, count)
+as
+select brewery, count(beer)
+from brewed_by
+group by brewery;
+
+create or replace view beer_count_by_location(location, count)
+as
+select br.located_in, sum(be.count)
+from breweries as br
+left join (select * from beer_count_by_brewery) as be 
+on be.brewery = br.id
+group by br.located_in
+;
+
+create or replace view beer_count_by_country_id(country, count)
+as
+select l.within, sum(count)
+from locations as l
+right join (
+  select *
+  from beer_count_by_location
+) as b
+on b.location = l.id
+group by l.within
+;
 
 create or replace view Q3(country, "#beers")
 as
-select null, null::bigint  -- replace this with your SQL code
+select c.name, coalesce(sum(b.count))::bigint
+from countries c 
+left join (
+  select * from beer_count_by_country_id
+) as b
+on b.country = c.id
+group by c.name-- replace this with your SQL code
 ;
 
 -- Q4: Countries where the worst beers are brewed
