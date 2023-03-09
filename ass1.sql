@@ -98,7 +98,7 @@ group by l.within
 
 create or replace view Q3(country, "#beers")
 as
-select c.name, coalesce(sum(b.count))::bigint
+select c.name, coalesce(sum(b.count), 0)::bigint
 from countries c 
 left join (
   select * from beer_count_by_country_id
