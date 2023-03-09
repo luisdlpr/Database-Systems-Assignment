@@ -124,7 +124,7 @@ inner join (
   select id, name, located_in
   from breweries
 ) as br
-on by.brewery = b.id
+on by.brewery = br.id
 ;
 
 create or replace view b_by_c(b_id, brewery, c_id)
