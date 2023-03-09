@@ -157,7 +157,7 @@ inner join (
   select id, name
   from countries
 ) c
-on c.id = q.country
+on c.id = q.c_id
 ;
 
 -- Q5: Beers that use ingredients from the Czech Republic
