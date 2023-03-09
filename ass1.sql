@@ -198,6 +198,25 @@ on b.id = i.b_id
 -- Q6: Beers containing the most used hop and the most used grain
 
 -- put any Q6 helper views/functions here
+-- count occurences of each ingredient
+-- incorporate itype here instead to filter and name
+create or replace view ing_freq(_count, ingredient)
+as
+select count(c.beer), c.ingredient
+from contains as c
+group by c.ingredient
+;
+
+create or replace view ing_freq_ext(_count, i_id, name, itype)
+as
+select f._count, f.ingredient, i.name, i.itype
+from ing_freq as f
+inner join (
+  select i.name, i.itype, i.id
+  from ingredients i
+) as i
+on f.ingredient = i.id
+;
 
 create or replace view Q6(beer)
 as
