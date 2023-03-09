@@ -152,7 +152,7 @@ on b.id = c.b_id
 create or replace view Q4(beer, brewery, country)
 as
 select q.beer, q.brewery, c.name
-from q4_cid q
+from b_by_c_filtered q
 inner join (
   select id, name
   from countries
