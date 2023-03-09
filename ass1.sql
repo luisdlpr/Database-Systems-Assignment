@@ -163,10 +163,36 @@ on c.id = q.c_id
 -- Q5: Beers that use ingredients from the Czech Republic
 
 -- put any Q5 helper views/functions here
+create or replace view ing_cze(i_id, name, itype, c_id)
+as
+select i.id, i.name, i.itype, i.origin
+from ingredients as i
+inner join (
+  select id
+  from countries
+  where countries.code = 'CZE'
+) as c
+on c.id = i.origin
+;
+
+create or replace view b_id_cze(b_id, ingredient, itype)
+as
+select c.beer, i.name, i.itype
+from contains c
+inner join (
+  select * from ing_cze
+) as i
+on i.i_id = c.ingredient;
 
 create or replace view Q5(beer, ingredient, "type")
 as
-select null, null, null::IngredientType  -- replace this with your SQL code
+select b.name, i.ingredient, i.itype::IngredientType  -- replace this with your SQL code
+from b_id_cze as i
+inner join (
+  select name, id
+  from beers
+) b 
+on b.id = i.b_id
 ;
 
 -- Q6: Beers containing the most used hop and the most used grain
