@@ -218,11 +218,72 @@ inner join (
 on f.ingredient = i.id
 ;
 
+-- select most popular ing of each type
+create or replace view most_popular_grain(id)
+as
+select i_id
+from ing_freq_ext as i
+right join (
+  select max(_count), itype
+  from ing_freq_ext
+  where itype = 'grain'
+  group by itype
+) as g 
+on g.max = i._count and g.itype = i.itype
+;
+
+-- get seperates then get union
+create or replace view b_ids_w_pop_grain(b_id)
+as
+select c.beer
+from contains c
+inner join (
+  select *
+  from most_popular_grain
+) as p 
+on c.ingredient = p.id
+;
+
+-- select most popular ing of each type
+create or replace view most_popular_hop(id)
+as
+select i_id
+from ing_freq_ext as i
+right join (
+  select max(_count), itype
+  from ing_freq_ext
+  where itype = 'hop'
+  group by itype
+) as g 
+on g.max = i._count and g.itype = i.itype
+;
+
+-- get seperates then get union
+create or replace view b_ids_w_pop_hop(b_id)
+as
+select c.beer
+from contains c
+inner join (
+  select *
+  from most_popular_hop
+) as p 
+on c.ingredient = p.id
+;-- select i_id from ing_freq_ext as i right join (select max(_count), itype from ing_freq_ext where itype = 'grain' or itype = 'hop' group by itype) as g on g.max = i._count and g.itype = i.itype;
+
 -- select max(_count), itype from ing_freq_ext group by itype;
+-- select max(_count) from ing_freq_ext where itype = 'grain' group by itype;
 
 create or replace view Q6(beer)
 as
-select null  -- replace this with your SQL code
+
+select b.name
+from beers b
+inner join (
+  select b_id from b_ids_w_pop_hop
+  intersect
+  select b_id from b_ids_w_pop_grain
+) as p 
+on p.b_id = b.id
 ;
 
 -- Q7: Breweries that make no beer
