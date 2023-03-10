@@ -303,6 +303,21 @@ where by.brewery is null-- replace this with your SQL code
 
 -- put any Q8 helper views/functions here
 
+create or replace view brewery_name_by_beer(beer, brewery_name) as
+select by.beer, string_agg(b.name, ' + ')
+from brewed_by as by
+inner join (
+  select id, name
+  from breweries
+) as b
+on by.brewery = b.id
+group by by.beer
+;
+
+-- given a beer id
+-- obtain brewery: brewed by -> brewery.name, can use a helper view
+-- process name
+-- append beer name
 create or replace function
 	Q8(beer_id integer) returns text
 as
