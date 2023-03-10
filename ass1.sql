@@ -292,7 +292,11 @@ on p.b_id = b.id
 
 create or replace view Q7(brewery)
 as
-select null  -- replace this with your SQL code
+select b.name
+from breweries b
+left join brewed_by by
+on by.brewery = b.id
+where by.brewery is null-- replace this with your SQL code
 ;
 
 -- Q8: Function to give "full name" of beer
