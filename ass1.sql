@@ -349,7 +349,7 @@ begin
     return 'No such beer';
   end if;
 
-  result := REGEXP_REPLACE(brewery, ' (Beer|Brew).*$', '');
+  result := brewery;
 
   if result like '' then
     result := brewery;
