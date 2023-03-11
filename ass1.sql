@@ -341,7 +341,15 @@ begin
   from beer_breweries as b
   where beer_id = b.b_id;
 
+  if beer is null then
+    return 'No such beer';
+
   result := REGEXP_REPLACE(brewery, ' (Beer|Brew).*$', '');
+
+  if result like '' then
+    result := brewery;
+  end if;
+
   result := result || ' ' || beer;
 
   return result;
