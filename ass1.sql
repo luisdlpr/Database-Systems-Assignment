@@ -314,15 +314,39 @@ on by.brewery = b.id
 group by by.beer
 ;
 
+create or replace view beer_breweries(b_id, beer, brewery) as
+select b.id, b.name, br.brewery_name
+from beers b
+inner join (
+  select * 
+  from brewery_name_by_beer
+) as br
+on br.beer = b.id;
+
 -- given a beer id
 -- obtain brewery: brewed by -> brewery.name, can use a helper view
 -- process name
 -- append beer name
+-- select substring('Mountain Culture Beer Co' from '^(.*?)(Beer|Brew)')
 create or replace function
-	Q8(beer_id integer) returns text
+        Q8(beer_id integer) returns text
 as
 $$
+declare
+  result text;
+  beer text;
+  brewery text;
 begin
+  select b.brewery, b.beer into brewery, beer
+  from beer_breweries as b
+  where beer_id = b.b_id;
+
+  result := REGEXP_REPLACE(brewery, ' (Beer|Brew).*$', '');
+  result := result || ' ' || beer;
+
+  return result;
+
+
 end;
 $$ language plpgsql
 ;
