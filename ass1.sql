@@ -337,9 +337,13 @@ declare
   beer text;
   brewery text;
 begin
-  select b.brewery, b.beer into brewery, beer
+  select 
+    string_agg(REGEXP_REPLACE(b.brewery, ' (Beer|Brew).*$', ''), '+'), 
+    b.beer 
+    into brewery, beer
   from beer_breweries as b
-  where beer_id = b.b_id;
+  where beer_id = b.b_id
+  group by b.beer;
 
   if beer is null then
     return 'No such beer';
