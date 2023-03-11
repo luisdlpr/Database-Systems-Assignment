@@ -343,6 +343,7 @@ begin
 
   if beer is null then
     return 'No such beer';
+  end if;
 
   result := REGEXP_REPLACE(brewery, ' (Beer|Brew).*$', '');
 
