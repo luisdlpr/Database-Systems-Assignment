@@ -311,7 +311,6 @@ inner join (
   from breweries
 ) as b
 on by.brewery = b.id
-group by by.beer
 ;
 
 create or replace view beer_breweries(b_id, beer, brewery) as
