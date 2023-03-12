@@ -337,7 +337,7 @@ declare
   brewery text;
 begin
   select 
-    string_agg(REGEXP_REPLACE(b.brewery, ' (Beer|Brew).*$', ''), '+'), 
+    string_agg(REGEXP_REPLACE(b.brewery, ' (Beer|Brew).*$', ''), ' + '), 
     b.beer 
     into brewery, beer
   from beer_breweries as b
