@@ -220,31 +220,27 @@ inner join (
 on f.ingredient = i.id
 ;
 
-CREATE OR REPLACE function most_popular_itype(itype text) returns setof integer
+-- select most popular ing of each type
+create or replace view most_popular_by_type(id, itype)
+as
+select i_id, i.itype
+from ing_freq_ext as i
+right join (
+  select max(_count), itype
+  from ing_freq_ext
+  group by itype
+) as g 
+on g.max = i._count and g.itype = i.itype
+;
+
+CREATE OR REPLACE function most_popular_itype(pop_i integer) returns setof integer
 as
 $$
-declare 
-ingredient record;
-beer record;
 begin
-  select i_id 
-  from ing_freq_ext as i
-  right join (
-    select max(_count), itype
-    from ing_fre_ext
-    where itype = 'grain'
-    group by itype
-  ) as g
-  on g.max = i._count and g.itype = i.itype
-  into ingredient;
-
-  for i in select * from ingredient loop
     return query
     select c.beer
     from contains c
-    where c.ingredient = i.i_id;
-
-  end loop;
+    where c.ingredient = pop_i;
 end;
 $$ language plpgsql
 ;
@@ -310,12 +306,12 @@ as
 select b.name
 from beers b
 inner join (
-  select * from most_popular_itype('hop')
+  select most_popular_itype(id) from most_popular_by_type where itype = 'hop'
   intersect
-  select * from most_popular_itype('grain')
+  select most_popular_itype(id) from most_popular_by_type where itype = 'grain'
   -- select b_id from b_ids_w_pop_grain
 ) as p 
-on p.b_id = b.id
+on p.most_popular_itype = b.id
 ;
 
 -- Q7: Breweries that make no beer
