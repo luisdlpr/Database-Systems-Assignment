@@ -4,8 +4,8 @@
 
 -- put any Q1 helper views/functions here
 
-create or replace view Q1(beer, "sold in", alcohol)
-as
+CREATE OR REPLACE VIEW Q1 (beer, "sold in", alcohol)
+AS
   SELECT 
     name,
     volume || 'ml ' || sold_in, 
@@ -17,13 +17,12 @@ as
 -- Q2: beers that don't fit the ABV style guidelines
 
 -- put any Q2 helper views/functions here
--- select b.name, s.max_abv, s.min_abv, b.abv from beers b full outer join styles s on b.style = s.id;
--- select name from (select b.name, s.max_abv, s.min_abv, b.abv from beers b full outer join styles s on b.style = s.id) as v where abv > max_abv or abv < min_abv;
-create or replace view Beers_Styles_abv_details(name, style, max_abv, min_abv, abv) 
-as
+
+CREATE OR REPLACE VIEW Beer_ABV_details(name, style, max_abv, min_abv, abv)
+AS
   SELECT b.name, s.name, s.max_abv, s.min_abv, b.abv
   FROM beers b
-  FULL OUTER JOIN styles s
+  FULL OUTER JOIN (styles) s
   on b.style = s.id
 ;
 
@@ -69,41 +68,63 @@ as
 -- select c.name, coalesce(sum(b.count), 0) from countries c left join (select * from numBeersCountryNN) as b on b.country = c.id group by c.name;
 -- CREATE VIEW
 -- -- put any Q3 helper views/functions here
-create or replace view beer_count_by_brewery(brewery, count)
-as
-select brewery, count(beer)
-from brewed_by
-group by brewery;
 
-create or replace view beer_count_by_location(location, count)
-as
-select br.located_in, sum(be.count)
-from breweries as br
-left join (select * from beer_count_by_brewery) as be 
-on be.brewery = br.id
-group by br.located_in
+create or replace view B_id_by_L_id(b_id, brewery, l_id)
+as 
+select by.beer, br.name, br.located_in 
+from brewed_by by
+inner join (
+  select id, name, located_in
+  from breweries
+) as br
+on by.brewery = br.id
 ;
 
-create or replace view beer_count_by_country_id(country, count)
+create or replace view B_id_by_C_id(b_id, brewery, c_id)
 as
-select l.within, sum(count)
-from locations as l
-right join (
-  select *
-  from beer_count_by_location
-) as b
-on b.location = l.id
-group by l.within
-;
+select b.b_id, b.brewery, l.within 
+from b_by_loc b 
+inner join (
+  select id, within
+  from locations
+) as l
+on l.id = b.l_id;
+
+-- create or replace view beer_count_by_brewery(brewery, count)
+-- as
+-- select brewery, count(beer)
+-- from brewed_by
+-- group by brewery;
+
+-- create or replace view beer_count_by_location(location, count)
+-- as
+-- select br.located_in, sum(be.count)
+-- from breweries as br
+-- left join (select * from beer_count_by_brewery) as be 
+-- on be.brewery = br.id
+-- group by br.located_in
+-- ;
+
+-- create or replace view beer_count_by_country_id(country, count)
+-- as
+-- select l.within, sum(count)
+-- from locations as l
+-- right join (
+--   select *
+--   from beer_count_by_location
+-- ) as b
+-- on b.location = l.id
+-- group by l.within
+-- ;
 
 create or replace view Q3(country, "#beers")
 as
 select c.name, coalesce(sum(b.count), 0)::bigint
 from countries c 
 left join (
-  select * from beer_count_by_country_id
+  select c_id, count(b_id) from B_id_by_C_id group by c_id
 ) as b
-on b.country = c.id
+on b.c_id = c.id
 group by c.name-- replace this with your SQL code
 ;
 
@@ -368,7 +389,6 @@ $$ language plpgsql
 drop type if exists BeerData cascade;
 create type BeerData as (beer text, brewer text, info text);
 
-
 -- put any Q9 helper views/functions here
 create or replace view beer_ingredients(b_id, i_name, itype) as
   select c.beer, i.name, i.itype
@@ -380,25 +400,11 @@ create or replace view beer_ingredients(b_id, i_name, itype) as
   on i.id = c.ingredient
 ;
 
--- create or replace view beer_breweries(b_id, beer, brewery) as
--- select b.id, b.name, br.brewery_name
--- from beers b
--- inner join (
---   select * 
---   from brewery_name_by_beer
--- ) as br
--- on br.beer = b.id;
-create type matches as (
-  name text,
-  id integer
-);
-
 create or replace function
         Q9(partial_name text) returns setof BeerData --BeerData
 as
 $$
 declare
-  matches matches;
   m record;
   breweries text;
   itypes text[] := ARRAY['hop', 'grain', 'adjunct'];
@@ -406,10 +412,6 @@ declare
   result text;
   temp text;
 begin
-  -- select b.name, b.id
-  -- from beers b
-  -- where b.name ~ ('(?i).*' || partial_name || '*') into matches;
-
   for m in select b.name, b.id
   from beers b
   where b.name ~ ('(?i).*' || partial_name || '*')LOOP
@@ -422,7 +424,6 @@ begin
     result := '';
 
     for i in 1..array_length(itypes, 1) LOOP
-
       temp := null;
 
       select string_agg(i_name, ',' order by i_name)
@@ -434,7 +435,6 @@ begin
       if temp is not null then
         result := result || E'\n' || labels[i] || temp;
       end if;
-      -- result := result || E'\n' || 'Extras: ' || extras;
     end loop;
 
     if substring(result, 1, 1) = E'\n' then
@@ -446,19 +446,4 @@ begin
 end;
 $$ language plpgsql
 ;
-
--- create or replace function
--- 	Q9(partial_name text) returns setof BeerData
--- as
--- $$
--- declare
---   result text;
--- begin
---   return query
---   select b.name 
---   from beers b 
---   where b.name ~ ('%' || partial_name || '%');
--- end;
--- $$ language plpgsql
--- ;
 
