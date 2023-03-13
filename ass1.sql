@@ -414,10 +414,9 @@ begin
   from beers b
   where b.name ~ ('(?i).*' || partial_name || '*')LOOP
 
-    select string_agg(brewery, ' + ')
+    select string_agg(brewery, ' + ' order by brewery)
     from beer_breweries
     where b_id = m.id
-    order by brewery
     into breweries;
 
     select string_agg(i_name, ',')
