@@ -417,7 +417,7 @@ begin
     select string_agg(brewery, ' + ')
     from beer_breweries
     where b_id = m.id
-    order by b.brewery
+    order by brewery
     into breweries;
 
     select string_agg(i_name, ',')
