@@ -341,8 +341,8 @@ drop type if exists BeerData cascade;
 create type BeerData as (beer text, brewer text, info text);
 
 -- put any Q9 helper views/functions here
-create or replace view beer_ingredients(b_id, i_name, itype) as
-  select c.beer, i.name, i.itype
+create or replace view beer_ingredients(b_id, i_id, i_name, itype) as
+  select c.beer, c.ingredient, i.name, i.itype
   from contains as c
   inner join (
     select *
