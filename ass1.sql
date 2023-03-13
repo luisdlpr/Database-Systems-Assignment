@@ -423,7 +423,7 @@ begin
 
     for i in 1..array_length(itypes, 1) LOOP
 
-      temp := '';
+      temp := null;
 
       select string_agg(i_name, ',' order by i_name)
       from beer_ingredients
@@ -432,7 +432,7 @@ begin
       into temp;
 
       if temp is not null then
-        result := labels[i] || temp;
+        result := result || E'\n' || labels[i] || temp;
       end if;
       -- result := result || E'\n' || 'Extras: ' || extras;
     end loop;
