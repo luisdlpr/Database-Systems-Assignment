@@ -401,10 +401,9 @@ declare
   matches matches;
   m record;
   breweries text;
-  hops text;
-  grain text;
-  extras text;
+  itypes text[] := ARRAY['hop', 'grain', 'adjunct'];
   result text;
+  temp text;
 begin
   -- select b.name, b.id
   -- from beers b
@@ -419,36 +418,23 @@ begin
     where b_id = m.id
     into breweries;
 
-    select string_agg(i_name, ',' order by i_name)
-    from beer_ingredients
-    where b_id = m.id
-      and itype = 'hop'
-    into hops;
-
-
-    select string_agg(i_name, ',' order by i_name)
-    from beer_ingredients
-    where b_id = m.id
-      and itype = 'grain'
-    into grain;
-
-    select string_agg(i_name, ',' order by i_name)
-    from beer_ingredients
-    where b_id = m.id
-      and itype = 'adjunct'
-    into extras;
-
     result := '';
 
-    if hops is not null then
-      result := 'Hops: ' || hops;
-    end if;
-    if grain is not null then
-      result := result || E'\n' || 'Grain: ' || grain;
-    end if;  
-    if extras is not null then
-      result := result || E'\n' || 'Extras: ' || extras;
-    end if;
+    for i in 1..array_length(itypes, 1) LOOP
+
+      temp := '';
+
+      select string_agg(i_name, ',' order by i_name)
+      from beer_ingredients
+      where b_id = m.id
+        and itype::text = itypes[i] 
+      into temp;
+
+      if temp is not null then
+        result := itypes[i]|| ': ' || temp;
+      end if;
+      -- result := result || E'\n' || 'Extras: ' || extras;
+    end loop;
 
     if substring(result, 1, 1) = E'\n' then
       result := substring(result, 2);
