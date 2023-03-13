@@ -416,24 +416,29 @@ begin
 
     select string_agg(brewery, ' + ')
     from beer_breweries
-    where b_id = m.id into breweries;
+    where b_id = m.id
+    order by b.brewery
+    into breweries;
 
     select string_agg(i_name, ',')
     from beer_ingredients
     where b_id = m.id
       and itype = 'hop'
+    order by i_name
     into hops;
 
     select string_agg(i_name, ',')
     from beer_ingredients
     where b_id = m.id
       and itype = 'grain'
+    order by i_name
     into grain;
 
     select string_agg(i_name, ',')
     from beer_ingredients
     where b_id = m.id
       and itype = 'adjunct'
+    order by i_name
     into extras;
 
     result := '';
