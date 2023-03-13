@@ -402,6 +402,7 @@ declare
   m record;
   breweries text;
   itypes text[] := ARRAY['hop', 'grain', 'adjunct'];
+  labels text[] := ARRAY['Hops: ', 'Grain: ', 'Extras: '];
   result text;
   temp text;
 begin
@@ -431,7 +432,7 @@ begin
       into temp;
 
       if temp is not null then
-        result := itypes[i]|| ': ' || temp;
+        result := labels[i] || temp;
       end if;
       -- result := result || E'\n' || 'Extras: ' || extras;
     end loop;
