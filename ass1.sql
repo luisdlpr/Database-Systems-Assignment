@@ -275,15 +275,15 @@ where by.brewery is null-- replace this with your SQL code
 
 -- put any Q8 helper views/functions here
 
-create or replace view brewery_name_by_beer(beer, brewery_name) as
-select by.beer, b.name
-from brewed_by as by
-inner join (
-  select id, name
-  from breweries
-) as b
-on by.brewery = b.id
-;
+-- create or replace view brewery_name_by_beer(beer, brewery_name) as
+-- select by.beer, b.name
+-- from brewed_by as by
+-- inner join (
+--   select id, name
+--   from breweries
+-- ) as b
+-- on by.brewery = b.id
+-- ;
 
 create or replace view beer_breweries(b_id, beer, brewery) as
 select b.id, b.name, br.brewery
