@@ -458,18 +458,18 @@ end;
 $$ language plpgsql
 ;
 
-create or replace function
-	Q9(partial_name text) returns setof BeerData
-as
-$$
-declare
-  result text;
-begin
-  return query
-  select b.name 
-  from beers b 
-  where b.name ~ ('%' || partial_name || '%');
-end;
-$$ language plpgsql
-;
+-- create or replace function
+-- 	Q9(partial_name text) returns setof BeerData
+-- as
+-- $$
+-- declare
+--   result text;
+-- begin
+--   return query
+--   select b.name 
+--   from beers b 
+--   where b.name ~ ('%' || partial_name || '%');
+-- end;
+-- $$ language plpgsql
+-- ;
 
