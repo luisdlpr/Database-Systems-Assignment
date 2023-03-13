@@ -390,7 +390,7 @@ create or replace view beer_ingredients(b_id, i_name, itype) as
 -- on br.beer = b.id;
 create type matches as (
   name text,
-  id integer,
+  id integer
 );
 
 create or replace function
