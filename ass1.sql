@@ -370,12 +370,105 @@ create type BeerData as (beer text, brewer text, info text);
 
 
 -- put any Q9 helper views/functions here
+create or replace view beer_ingredients(b_id, i_name, itype) as
+  select c.beer, i.name, i.itype
+  from contains as c
+  inner join (
+    select *
+    from ingredients
+  ) as i
+  on i.id = c.ingredient
+;
+
+-- create or replace view beer_breweries(b_id, beer, brewery) as
+-- select b.id, b.name, br.brewery_name
+-- from beers b
+-- inner join (
+--   select * 
+--   from brewery_name_by_beer
+-- ) as br
+-- on br.beer = b.id;
+create type matches as (
+  name text,
+  id integer,
+);
+
+create or replace function
+        Q9(partial_name text) returns setof BeerData --BeerData
+as
+$$
+declare
+  matches matches;
+  m record;
+  breweries text;
+  hops text;
+  grain text;
+  extras text;
+  result text;
+begin
+  -- select b.name, b.id
+  -- from beers b
+  -- where b.name ~ ('(?i).*' || partial_name || '*') into matches;
+
+  for m in select b.name, b.id
+  from beers b
+  where b.name ~ ('(?i).*' || partial_name || '*')LOOP
+
+    select string_agg(brewery, ' + ')
+    from beer_breweries
+    where b_id = m.id into breweries;
+
+    select string_agg(i_name, ',')
+    from beer_ingredients
+    where b_id = m.id
+      and itype = 'hop'
+    into hops;
+
+    select string_agg(i_name, ',')
+    from beer_ingredients
+    where b_id = m.id
+      and itype = 'grain'
+    into grain;
+
+    select string_agg(i_name, ',')
+    from beer_ingredients
+    where b_id = m.id
+      and itype = 'adjunct'
+    into extras;
+
+    result := '';
+
+    if hops is not null then
+      result := 'Hops: ' || hops;
+    end if;
+    if grain is not null then
+      result := result || E'\n' || 'Grain: ' || grain;
+    end if;  
+    if extras is not null then
+      result := result || E'\n' || 'Extras: ' || extras;
+    end if;
+
+    if substring(result, 1, 1) = E'\n' then
+      result := substring(result, 2);
+    end if;
+
+    return next (m.name, breweries, result)::BeerData;
+  end LOOP;
+end;
+$$ language plpgsql
+;
 
 create or replace function
 	Q9(partial_name text) returns setof BeerData
 as
 $$
+declare
+  result text;
 begin
+  return query
+  select b.name 
+  from beers b 
+  where b.name ~ ('%' || partial_name || '%');
 end;
 $$ language plpgsql
 ;
