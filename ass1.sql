@@ -22,7 +22,9 @@ CREATE OR REPLACE VIEW Beer_ABV_details(name, style, max_abv, min_abv, abv)
 AS
   SELECT b.name, s.name, s.max_abv, s.min_abv, b.abv
   FROM beers b
-  FULL OUTER JOIN (styles) s
+  FULL OUTER JOIN (
+    select *
+    from Styles) as s
   on b.style = s.id
 ;
 
@@ -44,7 +46,7 @@ $$ language plpgsql;
 create or replace view Q2(beer, style, abv, reason)
 as
   SELECT name, style, abv, generate_reason(max_abv, min_abv, abv)
-  FROM Beers_Styles_abv_details
+  FROM Beer_ABV_details
   WHERE abv > max_abv OR abv < min_abv
 ;
 
@@ -83,7 +85,7 @@ on by.brewery = br.id
 create or replace view B_id_by_C_id(b_id, brewery, c_id)
 as
 select b.b_id, b.brewery, l.within 
-from b_by_loc b 
+from B_id_by_L_id b 
 inner join (
   select id, within
   from locations
