@@ -139,31 +139,10 @@ group by c.name-- replace this with your SQL code
 -- select b.name, c.brewery_name, c.country from beer_by_country_id c inner join (select id, name from beers where rating < 3) b on b.id = c.beer;
 -- select q.name, q.brewery, c.name from q4_cid q inner join (select id, name from countries) c on c.id = q.country;
 
-create or replace view b_by_loc(b_id, brewery, l_id)
-as 
-select by.beer, br.name, br.located_in 
-from brewed_by by
-inner join (
-  select id, name, located_in
-  from breweries
-) as br
-on by.brewery = br.id
-;
-
-create or replace view b_by_c(b_id, brewery, c_id)
-as
-select b.b_id, b.brewery, l.within 
-from b_by_loc b 
-inner join (
-  select id, within
-  from locations
-) as l
-on l.id = b.l_id;
-
-create or replace view b_by_c_filtered (beer, brewery, c_id)
+create or replace view B_id_by_C_id_filtered (beer, brewery, c_id)
 as
 select b.name, c.brewery, c.c_id
-from b_by_c c
+from B_id_by_C_id c
 inner join (
   select id, name
   from beers
@@ -175,7 +154,7 @@ on b.id = c.b_id
 create or replace view Q4(beer, brewery, country)
 as
 select q.beer, q.brewery, c.name
-from b_by_c_filtered q
+from B_id_by_C_id_filtered q
 inner join (
   select id, name
   from countries
@@ -241,57 +220,83 @@ inner join (
 on f.ingredient = i.id
 ;
 
--- select most popular ing of each type
-create or replace view most_popular_grain(id)
+CREATE OR REPLACE function most_popular_itype(itype text) returns setof integer
 as
-select i_id
-from ing_freq_ext as i
-right join (
-  select max(_count), itype
-  from ing_freq_ext
-  where itype = 'grain'
-  group by itype
-) as g 
-on g.max = i._count and g.itype = i.itype
-;
+declare 
+ingredient record;
+beer record;
+begin
+  select i_id 
+  from ing_freq_ext as i
+  right join (
+    select max(_count), itype
+    from ing_fre_ext
+    where itype = 'grain'
+    group by itype
+  ) as g
+  on g.max = i._count and g.itype = i.itype
+  into ingredient;
 
--- get seperates then get union
-create or replace view b_ids_w_pop_grain(b_id)
-as
-select c.beer
-from contains c
-inner join (
-  select *
-  from most_popular_grain
-) as p 
-on c.ingredient = p.id
-;
+  for i in select * from ingredient loop
+    return query
+    select c.beer
+    from contains c
+    where c.ingredient = i.i_id;
 
--- select most popular ing of each type
-create or replace view most_popular_hop(id)
-as
-select i_id
-from ing_freq_ext as i
-right join (
-  select max(_count), itype
-  from ing_freq_ext
-  where itype = 'hop'
-  group by itype
-) as g 
-on g.max = i._count and g.itype = i.itype
-;
+  end loop;
+end;
 
--- get seperates then get union
-create or replace view b_ids_w_pop_hop(b_id)
-as
-select c.beer
-from contains c
-inner join (
-  select *
-  from most_popular_hop
-) as p 
-on c.ingredient = p.id
-;-- select i_id from ing_freq_ext as i right join (select max(_count), itype from ing_freq_ext where itype = 'grain' or itype = 'hop' group by itype) as g on g.max = i._count and g.itype = i.itype;
+-- -- select most popular ing of each type
+-- create or replace view most_popular_grain(id)
+-- as
+-- select i_id
+-- from ing_freq_ext as i
+-- right join (
+--   select max(_count), itype
+--   from ing_freq_ext
+--   where itype = 'grain'
+--   group by itype
+-- ) as g 
+-- on g.max = i._count and g.itype = i.itype
+-- ;
+
+-- -- get seperates then get union
+-- create or replace view b_ids_w_pop_grain(b_id)
+-- as
+-- select c.beer
+-- from contains c
+-- inner join (
+--   select *
+--   from most_popular_grain
+-- ) as p 
+-- on c.ingredient = p.id
+-- ;
+
+-- -- select most popular ing of each type
+-- create or replace view most_popular_hop(id)
+-- as
+-- select i_id
+-- from ing_freq_ext as i
+-- right join (
+--   select max(_count), itype
+--   from ing_freq_ext
+--   where itype = 'hop'
+--   group by itype
+-- ) as g 
+-- on g.max = i._count and g.itype = i.itype
+-- ;
+
+-- -- get seperates then get union
+-- create or replace view b_ids_w_pop_hop(b_id)
+-- as
+-- select c.beer
+-- from contains c
+-- inner join (
+--   select *
+--   from most_popular_hop
+-- ) as p 
+-- on c.ingredient = p.id
+-- ;-- select i_id from ing_freq_ext as i right join (select max(_count), itype from ing_freq_ext where itype = 'grain' or itype = 'hop' group by itype) as g on g.max = i._count and g.itype = i.itype;
 
 -- select max(_count), itype from ing_freq_ext group by itype;
 -- select max(_count) from ing_freq_ext where itype = 'grain' group by itype;
@@ -302,9 +307,10 @@ as
 select b.name
 from beers b
 inner join (
-  select b_id from b_ids_w_pop_hop
+  select * from most_popular_itype('hop')
   intersect
-  select b_id from b_ids_w_pop_grain
+  select * from most_popular_itype('grain')
+  -- select b_id from b_ids_w_pop_grain
 ) as p 
 on p.b_id = b.id
 ;
