@@ -222,6 +222,7 @@ on f.ingredient = i.id
 
 CREATE OR REPLACE function most_popular_itype(itype text) returns setof integer
 as
+$$
 declare 
 ingredient record;
 beer record;
@@ -245,6 +246,8 @@ begin
 
   end loop;
 end;
+$$ language plpgsql
+;
 
 -- -- select most popular ing of each type
 -- create or replace view most_popular_grain(id)
