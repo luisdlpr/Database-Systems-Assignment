@@ -320,7 +320,7 @@ AS
       FOR i IN 1..ARRAY_LENGTH(itypes, 1) LOOP
         temp := NULL;
 
-        SELECT STRING_AGG(i_name, ',' ORDER BY ingredient)
+        SELECT STRING_AGG(ingredient, ',' ORDER BY ingredient)
         FROM Contains_ext
         WHERE beer_id = m.id AND itype::text = itypes[i] 
         INTO temp;
