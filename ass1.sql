@@ -231,7 +231,7 @@ AS
   FROM Breweries b
   LEFT JOIN brewed_by _by
   ON _by.brewery = b.id
-  WHERE by.brewery IS NULL;
+  WHERE _by.brewery IS NULL;
 
 -- Q8: Function to give "full name" of beer
 -- put any Q8 helper views/functions here
