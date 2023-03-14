@@ -253,13 +253,14 @@ AS
     result text;
     beer text;
     brewery text;
+    _beer_id ALIAS FOR beer_id;
   BEGIN
     SELECT 
       STRING_AGG(REGEXP_REPLACE(b.brewery, ' (Beer|Brew).*$', ''), ' + '), 
       b.beer 
       INTO brewery, beer
     FROM Beers_by_brewery AS b
-    WHERE $beer_id = b.beer_id
+    WHERE _beer_id = b.beer_id
     GROUP BY b.beer;
 
     IF beer IS NULL THEN
