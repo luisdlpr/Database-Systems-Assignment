@@ -246,7 +246,7 @@ SELECT b.id, b.name, br.brewery
   ON br.beer_id = b.id;
 
 CREATE OR REPLACE FUNCTION
-        Q8(beer_id integer) RETURNS text
+        Q8(_beer_id integer) RETURNS text
 AS
   $$
   DECLARE
@@ -259,7 +259,7 @@ AS
       b.beer 
       INTO brewery, beer
     FROM Beers_by_brewery AS b
-    WHERE beer_id = b.beer_id
+    WHERE _beer_id = b.beer_id
     GROUP BY b.beer;
 
     IF beer IS NULL THEN
